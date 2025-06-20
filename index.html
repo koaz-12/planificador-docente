@@ -1,31 +1,228 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Prueba de Carga Local</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificador Docente Interactivo</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; margin: 15px; background-color: #f9f9f9; line-height: 1.5; }
+        h1 { text-align: center; margin-bottom: 25px; color: #333; }
+        table { border-collapse: collapse; width: 100%; table-layout: fixed; margin-bottom: 25px; background-color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ccc; padding: 8px; vertical-align: top; text-align: left; font-size: 12px; word-wrap: break-word; }
+        td strong { font-weight: bold; display: block; margin-bottom: 4px; color: #444; }
+        input[type="text"], textarea { width: 100%; height: 100%; border: 1px solid #e0e0e0; padding: 6px; box-sizing: border-box; resize: vertical; font-family: inherit; font-size: inherit; background-color: #fff; border-radius: 3px; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 1px #007bff40; }
+        textarea { min-height: 45px; display: block; }
+        .large-textarea { height: 300px; }
+        .actions { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; text-align: center; }
+        .actions button, .import-button { padding: 10px 18px; margin: 5px 8px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background-color: #f8f9fa; font-size: 13px; transition: background-color 0.2s ease, border-color 0.2s ease; }
+        .actions button:hover, .import-button:hover { background-color: #e2e6ea; border-color: #adb5bd; }
+        #importFile { display: none; }
+        .import-button { display: inline-block; }
+        #statusMessage { display: none; text-align: center; padding: 10px; margin: 15px auto 0 auto; max-width: 80%; background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; border-radius: 4px; font-weight: bold; }
+        #statusMessage.error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        #statusMessage.success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .info-docx { text-align: center; font-size: 11px; color: #666; margin: 0 auto 15px auto; padding: 8px; background-color: #f0f0f0; border-radius: 4px; max-width: 80%;}
+    </style>
 </head>
 <body>
-    <h1>Prueba de Carga de Archivos Locales</h1>
-    <button id="testButton">Probar Librerías</button>
 
-    <!-- Cargando los scripts desde la misma carpeta -->
-    <script src="./pizzip.min.js"></script>
-    <script src="./docxtemplater.min.js"></script>
-    <script src="./FileSaver.min.js"></script>
+<h1>Planificación de Clase (Formato Tabla)</h1>
 
-    <script>
-        document.getElementById('testButton').addEventListener('click', function() {
-            // Verificamos si las variables globales fueron creadas por los scripts
-            if (typeof PizZip !== 'undefined' && typeof docxtemplater !== 'undefined' && typeof saveAs !== 'undefined') {
-                alert('¡ÉXITO! Todas las librerías se cargaron correctamente.');
-            } else {
-                alert('FALLO: Una o más librerías no se cargaron. Revisa la consola (F12).');
+<form id="planificacionForm">
+    <table border="1">
+        <tbody>
+            <tr><td style="height:1px; border:none;"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr> <td><strong>UNIDAD</strong></td> <td colspan="7"><input type="text" id="unidad" name="unidad" placeholder="..."></td> </tr>
+            <tr> <td colspan="2"><strong>CENTRO EDUCATIVO</strong></td> <td colspan="6"><input type="text" id="centro_educativo" name="centro_educativo" placeholder="..."></td> </tr>
+            <tr> <td><strong>DOCENTE</strong></td> <td colspan="2"><input type="text" id="docente" name="docente" placeholder="..."></td> <td><strong>GRADO</strong></td> <td><input type="text" id="grado" name="grado" placeholder="..."></td> <td><strong>TIEMPO ASIGNADO</strong></td> <td colspan="2"><input type="text" id="tiempo" name="tiempo" placeholder="..."></td> </tr>
+            <tr> <td colspan="2"><strong>SITUACION DE APRENDIZAJE</strong></td> <td colspan="6"><textarea id="situacion_aprendizaje" name="situacion_aprendizaje" rows="3" placeholder="Cada línea nueva será un párrafo en el DOCX..."></textarea></td> </tr>
+            <tr> <td rowspan="3" colspan="2"><strong>COMPETENCIAS FUNDAMENTALES</strong></td> <td rowspan="3" colspan="2"> <strong>COMUNICATIVA</strong> <textarea id="comp_comunicativa" name="comp_comunicativa" rows="6" placeholder="Para listas, usa un guion (-) al inicio de cada línea..."></textarea> </td> <td rowspan="3" colspan="2"> <strong>Pensamiento Lógico...</strong> <textarea id="comp_logico" name="comp_logico" rows="6" placeholder="..."></textarea> </td> <td rowspan="3" colspan="2"> <strong>Ética y Ciudadanía...</strong> <textarea id="comp_etica" name="comp_etica" rows="6" placeholder="..."></textarea> </td> </tr>
+            <tr></tr> <tr></tr>
+            <tr> <td colspan="2"><strong>COMPETENCIA ESPECIFICA DE GRADO</strong></td> <td colspan="2"><textarea id="comp_esp_1" name="comp_esp_1" rows="2" placeholder="..."></textarea></td> <td colspan="2"><textarea id="comp_esp_2" name="comp_esp_2" rows="2" placeholder="..."></textarea></td> <td colspan="2"><textarea id="comp_esp_3" name="comp_esp_3" rows="2" placeholder="..."></textarea></td> </tr>
+            <tr> <td><strong>EJE TRANSVERSAL</strong></td> <td colspan="7"><input type="text" id="eje_transversal" name="eje_transversal" placeholder="..."></td> </tr>
+            <tr> <td><strong>AREA(S)</strong></td> <td colspan="7"><input type="text" id="areas" name="areas" value="Educación Física" placeholder="..."></td> </tr>
+            <tr> <td colspan="2"><strong>ESTRATEGIA DE ENSEÑANZA Y APRENDIZAJE</strong></td> <td colspan="6"><textarea id="estrategia" name="estrategia" rows="3" placeholder="Cada línea nueva será un párrafo en el DOCX..."></textarea></td> </tr>
+            <tr> <td colspan="4"><strong>CONTENIDO</strong></td> <td colspan="2" rowspan="2"><strong>CRITERIOS DE EVALUACION</strong></td> <td colspan="2" rowspan="2"><strong>INDICADORES DE LOGRO</strong></td> </tr>
+            <tr> <td><strong>CONCEPTUALES</strong></td> <td><strong>PROCEDIMENTALES</strong></td> <td colspan="2"><strong>ACTITUDES Y VALORES</strong></td> </tr>
+            <tr> <td><textarea id="cont_conceptuales" name="cont_conceptuales" rows="4" placeholder="Para listas, usa un guion (-) al inicio..."></textarea></td> <td><textarea id="cont_procedimentales" name="cont_procedimentales" rows="4" placeholder="Para listas, usa un guion (-) al inicio..."></textarea></td> <td colspan="2"><textarea id="cont_actitudes" name="cont_actitudes" rows="4" placeholder="Para listas, usa un guion (-) al inicio..."></textarea></td> <td colspan="2"><textarea id="criterios_eval" name="criterios_eval" rows="4" placeholder="..."></textarea></td> <td colspan="2"><textarea id="indicadores_logro" name="indicadores_logro" rows="4" placeholder="..."></textarea></td> </tr>
+            <tr> <td colspan="4" rowspan="2"><strong>ACTIVIDADES</strong></td> <td colspan="2" rowspan="2"><strong>TECNICAS E INSTRUMENTOS...</strong></td> <td colspan="2" rowspan="2"><strong>Medios y recursos</strong></td> </tr>
+            <tr></tr>
+            <tr> <td rowspan="2"><strong>DE ENSEÑANZA</strong></td> <td rowspan="2"><strong>DE APRENDIZAJE</strong></td> <td colspan="2" rowspan="2"><strong>DE EVALUACION</strong></td> <td colspan="2" rowspan="22"> <textarea id="tecnicas_instrumentos" name="tecnicas_instrumentos" class="large-textarea" placeholder="..."></textarea> </td> <td colspan="2" rowspan="22"> <textarea id="medios_recursos" name="medios_recursos" class="large-textarea" placeholder="..."></textarea> </td> </tr>
+            <tr></tr>
+             <tr> <td rowspan="20"> <textarea id="act_ensenanza" name="act_ensenanza" class="large-textarea" placeholder="..."></textarea> </td> <td rowspan="20"> <textarea id="act_aprendizaje" name="act_aprendizaje" class="large-textarea" placeholder="..."></textarea> </td> <td colspan="2" rowspan="20"> <textarea id="act_evaluacion" name="act_evaluacion" class="large-textarea" placeholder="..."></textarea> </td> </tr>
+            <script> for (let i = 24; i <= 42; i++) { document.write('<tr></tr>'); } </script>
+        </tbody>
+    </table>
+    <div id="statusMessage"></div>
+    <div class="info-docx">
+        <strong>Para exportar a DOCX con formato:</strong><br/>
+        En los campos de texto largos, cada nueva línea será un párrafo. Para crear una lista con viñetas, empieza cada línea con un guion (-).
+    </div>
+    <div class="actions">
+        <button type="button" id="btnGuardar">Guardar</button>
+        <button type="button" id="btnExportarJson">Exportar JSON</button>
+        <button type="button" id="btnExportarDocx">Exportar DOCX</button>
+        <label for="importFile" class="import-button">Importar JSON</label>
+        <input type="file" id="importFile" accept=".json">
+        <button type="button" id="btnLimpiar">Limpiar</button>
+    </div>
+</form>
 
-                // Imprimimos el estado de cada una para saber cuál falló
-                console.log('Estado de PizZip:', typeof PizZip);
-                console.log('Estado de docxtemplater:', typeof docxtemplater);
-                console.log('Estado de saveAs (FileSaver):', typeof saveAs);
+<!-- LIBRERÍAS CARGADAS DESDE LA MISMA CARPETA -->
+<script src="./pizzip.min.js"></script>
+<script src="./docxtemplater.min.js"></script>
+<script src="./FileSaver.min.js"></script>
+
+<!-- CÓDIGO DE LA APLICACIÓN -->
+<script>
+    const form = document.getElementById('planificacionForm');
+    const statusMessage = document.getElementById('statusMessage');
+    const LOCAL_STORAGE_KEY = 'planificacionDocenteData_v4';
+
+    // ¡¡¡ IMPORTANTE: REEMPLAZA ESTA CADENA con la versión Base64 de tu plantilla .DOCX final !!!
+    // La plantilla debe usar las etiquetas de bucle para formato, por ejemplo:
+    // Párrafos: {#situacion_aprendizaje_p}{.}{/situacion_aprendizaje_p}
+    // Listas: {#cont_conceptuales_list}• {.}{/cont_conceptuales_list}
+    const docxTemplateBase64 = "UEsDBBQACAgIAAAAADmaCEkAAAAAAAAAAAAAAAAJAAAAX3JlbHMvLnJlbHNMj8FqwzAMgP+De4Pgt5X2sYq91A+QpSAI/gAgm8SkbUu2goT/fbE34sHcu8f9gc0kH9L6G5A/cBN+E9Mv2kK8g24s6Cz4sra8kKKBQ8S6gB2f3889p4N+A/QJ7x7gV2Z22gJ1p7WK2Y45z9E471IW15vQuB8g3u+gh8s/Oq/sYw3iC7fR/P8Tz/Ca+GNQY+N8E1+ePkLQSwcIL97kOBoAAACcAQAAUEsDBBQACAgIAAAAADmaCEkAAAAAAAAAAAAAAAAQAAAAd29yZC9kb2N1bWVudC54bWzNkLFuwjAUhu+F/oeiO9m0aVnETGInSYp0KdL+ADG2YSeWpRLG/r1J06ZNJBze9+P7/f4xWdfw6XoDHYOWQmWQSTQ37YBToec/m8MrXMDbCtRBNh9lbK+KxjPH2cxZTTuN85m1z91/OqCjNaU+Nn6v4WwD+Y1wVb0wSj6kU7qK1VjR1E960v7d/tFk9zWp+g4tJt4CgqT63g5o/UvYhP5o9dPwFUEsHCFVb8kHqAAAAoQEAAFBLAwQUAAgICAAAAADmaCEkAAAAAAAAAAAAAAAAEwAAAHdvcmQvX3JlbHMvZG9jdW1lbnQueG1sLnJlbHOcj8EKwjAQBf+C/xD2btO6DyJLUy+L4M2kwh5AOm1DN4nQiP57Q08L9uAwv+b/fJu+b5HSHXM7CgaaqgaF0dHg42Tg0h/mOlAsNnE7UEQD92TY91brGReLpeM+sSoIsYFZJGlrzXbHYLmmhLHOQuZgpYy5m8u8vXOCvqnqrS5fA7o3Ux0HA/nQNaD6RyL/2GxE/vGf3D1gLp7Ir5bsLu2V/gRmlKk0ql7miWUAx4UvV9MKia7rbr+/+gRQSwcIa1o00LoAAAAnAQAAUEsBAgAAAAAFAAgICAAAAADmaCEkv3uQ4GgAAACcAQAACQAAAAAAAAAAAAAAAQAAAO1BAABfcmVscy8ucmVsc1BLAQIAAAAABQAICAgAAAAA5mghJFVb8kHqAAAAoQEAABAAAAAAAAAAAAAAAAAHAQAAd29yZC9kb2N1bWVudC54bWxQSwECAAAAAAUACAgIAAAAADmaCElrWjTQugAAACcBAAATAAAAAAAAAAAAAAAAABICAAAd29yZC9fcmVscy9kb2N1bWVudC54bWwucmVsc1BLBQYAAAAAAwADAMgAAADhAgAAAAA=";
+
+    const showStatus = (message, type = 'info') => {
+        statusMessage.textContent = message;
+        statusMessage.className = type === 'error' ? 'error' : 'success';
+        statusMessage.style.display = 'block';
+        clearTimeout(statusMessage.timer);
+        statusMessage.timer = setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
+    };
+
+    const getFormDataObject = () => {
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => { data[key] = value || ''; });
+        return data;
+    };
+
+    const preprocessDataForDocx = (data) => {
+        const processedData = { ...data };
+        const allKeys = Object.keys(data);
+
+        allKeys.forEach(key => {
+            const value = processedData[key];
+            if (typeof value === 'string' && value.includes('\n')) {
+                const lines = value.split('\n').filter(line => line.trim() !== '');
+                
+                // Si la mayoría de las líneas empiezan con un guion, lo tratamos como lista
+                const listLines = lines.filter(line => line.trim().startsWith('-'));
+                if (listLines.length > lines.length / 2) {
+                    processedData[key + '_list'] = lines.map(line => line.trim().replace(/^- ?/, ''));
+                } else { // Si no, lo tratamos como párrafos
+                    processedData[key + '_p'] = lines;
+                }
+                delete processedData[key];
             }
         });
-    </script>
+        
+        return processedData;
+    };
+
+    // --- LÓGICA DE EVENTOS ---
+
+    document.getElementById('btnGuardar').addEventListener('click', () => {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(getFormDataObject()));
+        showStatus('Guardado localmente.', 'success');
+    });
+
+    window.addEventListener('load', () => {
+        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            for (const key in data) {
+                if (form.elements[key]) { form.elements[key].value = data[key]; }
+            }
+        }
+    });
+
+    document.getElementById('btnLimpiar').addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que quieres borrar todos los datos del formulario?')) {
+            form.reset();
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            showStatus('Formulario limpiado.');
+        }
+    });
+    
+    document.getElementById('btnExportarJson').addEventListener('click', () => {
+        try {
+            const data = getFormDataObject();
+            const jsonData = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const unidad = (data.unidad.trim()) || 'plan';
+            const clean = (n) => String(n).replace(/[^a-z0-9_.-]/gi, '_').substring(0, 30);
+            saveAs(blob, `${clean(unidad)}.json`);
+            showStatus('JSON exportado.', 'success');
+        } catch (e) {
+            showStatus('Error al exportar JSON.', 'error');
+            console.error(e);
+        }
+    });
+    
+    document.getElementById('importFile').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file || !file.type.match('application/json')) { return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                for (const key in data) {
+                    if (form.elements[key]) { form.elements[key].value = data[key]; }
+                }
+                showStatus('Datos importados.', 'success');
+            } catch (error) {
+                showStatus('Error al importar el archivo JSON.', 'error');
+                console.error(error);
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('btnExportarDocx').addEventListener('click', () => {
+        if (typeof PizZip === 'undefined' || typeof docxtemplater === 'undefined' || typeof saveAs === 'undefined') {
+            showStatus("Error: No se pudo cargar una librería. Esto no debería pasar si la app está en un servidor.", 'error');
+            return;
+        }
+
+        showStatus('Generando DOCX...', 'info');
+        
+        try {
+            const zip = new PizZip(atob(docxTemplateBase64), { base64: true });
+            const doc = new docxtemplater(zip, {
+                paragraphLoop: true,
+                linebreaks: true,
+                nullGetter: () => ""
+            });
+
+            const rawData = getFormDataObject();
+            const dataToRender = preprocessDataForDocx(rawData);
+
+            doc.setData(dataToRender);
+            doc.render();
+
+            const outBlob = doc.getZip().generate({
+                type: "blob",
+                mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            });
+            
+            const unidad = (rawData.unidad.trim()) || 'plan';
+            const grado = (rawData.grado.trim()) || 'gral';
+            const clean = (n) => String(n).replace(/[^a-z0-9_.-]/gi, '_').substring(0, 30);
+            
+            saveAs(outBlob, `Planificacion_${clean(unidad)}_${clean(grado)}.docx`);
+            showStatus("DOCX generado con éxito.", 'success');
+        } catch (error) {
+            console.error("Error al generar DOCX:", error);
+            showStatus(`Error: ${error.message}. Revisa la consola (F12).`, 'error');
+        }
+    });
+
+</script>
+
 </body>
 </html>
