@@ -53,12 +53,25 @@
 
 <!-- CÓDIGO DE LA APLICACIÓN -->
 <script>
+    // --- COMIENZO DEL BLOQUE SCRIPT CORREGIDO ---
+
+    // --- DECLARACIÓN DE VARIABLES Y CONSTANTES GLOBALES ---
     const form = document.getElementById('planificacionForm');
     const statusMessage = document.getElementById('statusMessage');
+    const LOCAL_STORAGE_KEY = 'planificacionDocenteData_v5';
 
     // --- PLANTILLA DOCX FUNCIONAL ---
-    // Esta Base64 corresponde a una plantilla que SÍ usa las etiquetas de bucle que espera el código.
     const docxTemplateBase64 = "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";
+
+    // --- DECLARACIÓN DE FUNCIONES ---
+
+    const showStatus = (message, type = 'info') => {
+        statusMessage.textContent = message;
+        statusMessage.className = type === 'error' ? 'error' : 'success';
+        statusMessage.style.display = 'block';
+        clearTimeout(statusMessage.timer);
+        statusMessage.timer = setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
+    };
 
     const getFormDataObject = () => {
         const formData = new FormData(form);
@@ -90,6 +103,9 @@
         return processedData;
     };
 
+    // --- ASIGNACIÓN DE EVENTOS (EVENT LISTENERS) ---
+
+    // Evento para el botón de exportar
     document.getElementById('btnExportarDocx').addEventListener('click', () => {
         showStatus('Generando DOCX...', 'info');
         
@@ -123,8 +139,36 @@
         }
     });
 
-    document.getElementById('btnLimpiar').addEventListener('click', () => form.reset());
+    // Evento para el botón de limpiar
+    document.getElementById('btnLimpiar').addEventListener('click', () => {
+        if (confirm('¿Estás seguro? Se borrarán todos los datos.')) {
+            form.reset();
+            showStatus('Formulario limpiado.');
+        }
+    });
 
+    // Cargar datos guardados al iniciar la página
+    window.addEventListener('load', () => {
+        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                for (const key in data) {
+                    if (form.elements[key]) { form.elements[key].value = data[key]; }
+                }
+                console.log("Datos locales cargados.");
+            } catch(e) {
+                console.error("Error al cargar datos locales", e);
+            }
+        }
+    });
+    
+    // Guardar datos automáticamente antes de que el usuario cierre la página
+    window.addEventListener('beforeunload', () => {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(getFormDataObject()));
+    });
+
+// --- FIN DEL BLOQUE SCRIPT CORREGIDO ---
 </script>
 
 </body>
