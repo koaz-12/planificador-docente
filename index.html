@@ -13,7 +13,8 @@
         input[type="text"], textarea { width: 100%; height: 100%; border: 1px solid #e0e0e0; padding: 6px; box-sizing: border-box; resize: vertical; font-family: inherit; font-size: inherit; background-color: #fff; border-radius: 3px; }
         textarea { min-height: 45px; display: block; } .large-textarea { height: 300px; }
         .actions { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; text-align: center; }
-        .actions button { padding: 10px 18px; margin: 5px 8px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background-color: #f8f9fa; font-size: 13px; }
+        .actions button, .import-button { padding: 10px 18px; margin: 5px 8px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background-color: #f8f9fa; font-size: 13px; transition: background-color 0.2s ease, border-color 0.2s ease; }
+        #importFile { display: none; } .import-button { display: inline-block; }
         #statusMessage { display: none; text-align: center; padding: 10px; margin: 15px auto 0 auto; max-width: 80%; border-radius: 4px; font-weight: bold; }
         #statusMessage.error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
         #statusMessage.success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
@@ -41,6 +42,7 @@
         <strong>Formato DOCX:</strong> Cada nueva línea será un párrafo. Para crear listas, empieza cada línea con un guion (-).
     </div>
     <div class="actions">
+        <button type="button" id="btnGuardar">Guardar</button>
         <button type="button" id="btnExportarDocx">Exportar DOCX</button>
         <button type="button" id="btnLimpiar">Limpiar</button>
     </div>
@@ -53,8 +55,6 @@
 
 <!-- CÓDIGO DE LA APLICACIÓN -->
 <script>
-    // --- COMIENZO DEL BLOQUE SCRIPT CORREGIDO ---
-
     // --- DECLARACIÓN DE VARIABLES Y CONSTANTES GLOBALES ---
     const form = document.getElementById('planificacionForm');
     const statusMessage = document.getElementById('statusMessage');
@@ -64,7 +64,6 @@
     const docxTemplateBase64 = "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";
 
     // --- DECLARACIÓN DE FUNCIONES ---
-
     const showStatus = (message, type = 'info') => {
         statusMessage.textContent = message;
         statusMessage.className = type === 'error' ? 'error' : 'success';
@@ -91,7 +90,7 @@
                 if (lines.length === 0) return;
 
                 const listLines = lines.filter(line => line.trim().startsWith('-'));
-                if (listLines.length > lines.length / 2) {
+                if (listLines.length > lines.length / 2 && lines.length > 1) {
                     processedData[key + '_list'] = lines.map(line => line.trim().replace(/^- ?/, ''));
                 } else {
                     processedData[key + '_p'] = lines;
@@ -104,8 +103,6 @@
     };
 
     // --- ASIGNACIÓN DE EVENTOS (EVENT LISTENERS) ---
-
-    // Evento para el botón de exportar
     document.getElementById('btnExportarDocx').addEventListener('click', () => {
         showStatus('Generando DOCX...', 'info');
         
@@ -139,15 +136,14 @@
         }
     });
 
-    // Evento para el botón de limpiar
     document.getElementById('btnLimpiar').addEventListener('click', () => {
         if (confirm('¿Estás seguro? Se borrarán todos los datos.')) {
             form.reset();
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
             showStatus('Formulario limpiado.');
         }
     });
 
-    // Cargar datos guardados al iniciar la página
     window.addEventListener('load', () => {
         const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedData) {
@@ -156,19 +152,14 @@
                 for (const key in data) {
                     if (form.elements[key]) { form.elements[key].value = data[key]; }
                 }
-                console.log("Datos locales cargados.");
-            } catch(e) {
-                console.error("Error al cargar datos locales", e);
-            }
+            } catch(e) { console.error("Error al cargar datos locales", e); }
         }
     });
     
-    // Guardar datos automáticamente antes de que el usuario cierre la página
-    window.addEventListener('beforeunload', () => {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(getFormDataObject()));
-    });
-
-// --- FIN DEL BLOQUE SCRIPT CORREGIDO ---
+    // He quitado el guardado automático para evitar problemas, puedes dejar solo el botón de guardar manual.
+    // window.addEventListener('beforeunload', () => {
+    //     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(getFormDataObject()));
+    // });
 </script>
 
 </body>
